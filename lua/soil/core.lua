@@ -15,8 +15,8 @@ local function validate()
         Logger:warn("java is required. Install it to use this plugin.")
         return false
     end
-    if vim.fn.executable("nsxiv") == 0 and validate_image_function() then
-        Logger:warn("nsxiv is required. Install it to use this plugin.")
+    if (vim.fn.executable("wezterm") == 0 or vim.fn.executable("nsxiv") == 0) and validate_image_function() then
+        Logger:warn("wezterm/nsxiv is required. Install it to use this plugin.")
         return false
     end
     return true
@@ -29,7 +29,11 @@ local function get_image_command(file)
         do return end
     end
     Logger:info(string.format("Image %s.%s generated!", file, settings.image.format))
-    return string.format("sh -c '%s & disown; echo $?'", settings.image.execute_to_open(image_file))
+    if (vim.fn.executable("nsxiv") == 0) then
+      return string.format("wezterm cli split-pane --right -- sh -c '%s; read \"Press Enter to continue...\"'", settings.image.execute_to_open(image_file))
+    else
+      return string.format("sh -c '%s & disown; echo $?'", settings.image.execute_to_open(image_file))
+    end
 end
 
 local function execute_command(command, error_msg)
